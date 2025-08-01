@@ -55,12 +55,20 @@ class ServerConnection {
     }
 
     _endpoint() {
-        // hack to detect if deployment or development environment
-        const protocol = location.protocol.startsWith('https') ? 'wss' : 'ws';
-        const webrtc = window.isRtcSupported ? '/webrtc' : '/fallback';
-        const url = protocol + '://' + location.host + location.pathname + 'server' + webrtc;
-        return url;
-    }
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+
+    // Get current pathname and ensure it ends in a single slash
+    let basePath = location.pathname;
+    if (!basePath.endsWith('/')) basePath += '/';
+
+    // Clean up double slashes (e.g., from root '/')
+    basePath = basePath.replace(/\/+$/, '/')  // ensure only one trailing slash
+
+    const webrtc = window.isRtcSupported ? 'webrtc' : 'fallback';
+
+    return `${protocol}://${location.host}${basePath}server/${webrtc}`;
+}
+
 
     _disconnect() {
         this.send({ type: 'disconnect' });
